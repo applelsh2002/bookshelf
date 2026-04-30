@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>書架</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2EDE4;--paper:#FAF6EF;--paper2:#EDE6D9;
+  --ink:#2C2418;--ink2:#7A6D60;--ink3:#B5A898;
+  --accent:#7B3B2A;--accent2:#A05540;
+  --border:rgba(44,36,24,0.10);--border2:rgba(44,36,24,0.06);
+  --t:.2s ease;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden;}
+::placeholder{color:var(--ink3);}
+
+/* ── VIEWS ── */
+.view{display:none;min-height:100vh;}
+.view.show{display:block;}
+
+/* ── SETUP SCREEN ── */
+#v-setup{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 32px;text-align:center;background:var(--bg);}
+.setup-icon{width:72px;height:72px;border-radius:18px;background:var(--paper);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;}
+.setup-title{font-family:'Noto Serif TC',serif;font-size:28px;font-weight:700;color:var(--ink);margin-bottom:10px;}
+.setup-sub{font-size:14px;color:var(--ink2);line-height:1.8;margin-bottom:32px;}
+.setup-step{background:var(--paper);border-radius:14px;border:1px solid var(--border);padding:20px;margin-bottom:16px;text-align:left;width:100%;}
+.step-n{font-size:11px;letter-spacing:1.5px;color:var(--ink3);font-weight:500;margin-bottom:6px;}
+.step-t{font-size:14px;color:var(--ink);line-height:1.6;}
+.step-t a{color:var(--accent);text-decoration:none;}
+.setup-input{width:100%;border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;font-size:14px;font-family:'Noto Sans TC',sans-serif;background:var(--paper);color:var(--ink);outline:none;margin-top:10px;transition:border-color var(--t);}
+.setup-input:focus{border-color:var(--accent2);}
+.btn-start{width:100%;background:var(--accent);color:white;border:none;border-radius:14px;padding:17px;font-size:16px;font-weight:500;font-family:'Noto Sans TC',sans-serif;cursor:pointer;margin-top:8px;letter-spacing:.5px;}
+.btn-start:active{opacity:.85;}
+
+/* ── LOGIN SCREEN ── */
+#v-login{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 32px;text-align:center;background:var(--bg);}
+.login-icon{width:72px;height:72px;border-radius:18px;background:var(--paper);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;}
+.login-title{font-family:'Noto Serif TC',serif;font-size:28px;font-weight:700;color:var(--ink);margin-bottom:10px;}
+.login-sub{font-size:14px;color:var(--ink2);line-height:1.8;margin-bottom:40px;}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;background:var(--paper);border:1.5px solid var(--border);border-radius:14px;padding:16px;font-size:15px;font-weight:500;font-family:'Noto Sans TC',sans-serif;color:var(--ink);cursor:pointer;transition:background var(--t);box-shadow:0 2px 8px rgba(44,36,24,0.08);}
+.btn-google:active{background:var(--paper2);}
+.btn-skip{margin-top:16px;border:none;background:transparent;color:var(--ink3);font-size:13px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;padding:8px;text-decoration:underline;}
+
+/* ── LIBRARY ── */
+#v-library{padding-bottom:90px;}
+.lib-top{padding:52px 24px 0;position:relative;display:flex;align-items:flex-start;justify-content:space-between;}
+.lib-heading{flex:1;}
+.lib-eyebrow{font-size:11px;letter-spacing:2.5px;color:var(--ink3);margin-bottom:8px;}
+.lib-title{font-family:'Noto Serif TC',serif;font-size:42px;font-weight:700;color:var(--ink);letter-spacing:-2px;line-height:1;}
+.lib-top-actions{display:flex;gap:8px;margin-top:8px;flex-shrink:0;}
+.btn-circle{width:40px;height:40px;border-radius:50%;background:var(--paper);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background var(--t);}
+.btn-circle:active{background:var(--paper2);}
+.lib-section{padding:28px 24px 0;}
+.lib-sec-label{font-family:'Noto Serif TC',serif;font-size:18px;font-weight:500;color:var(--ink);display:flex;align-items:baseline;gap:8px;margin-bottom:16px;}
+.lib-sec-count{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;color:var(--ink3);}
+.books-row{display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.books-row::-webkit-scrollbar{display:none;}
+.book-thumb{flex-shrink:0;width:106px;cursor:pointer;}
+.bcover{width:106px;height:150px;border-radius:6px;overflow:hidden;background:var(--paper2);display:flex;align-items:center;justify-content:center;box-shadow:2px 4px 14px rgba(44,36,24,0.18),inset -1px 0 0 rgba(44,36,24,0.07);margin-bottom:8px;transition:transform .18s ease,box-shadow .18s ease;}
+.book-thumb:active .bcover{transform:scale(0.95);box-shadow:1px 2px 6px rgba(44,36,24,0.12);}
+.bcover img{width:100%;height:100%;object-fit:cover;}
+.bthumb-title{font-size:12px;color:var(--ink2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-family:'Noto Serif TC',serif;}
+.empty-row{color:var(--ink3);font-size:13px;padding:4px 0;}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;width:100%;max-width:480px;background:var(--paper);border-top:1px solid var(--border2);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom,0);}
+.bnav-btn{flex:1;border:none;background:transparent;padding:13px 0 11px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--ink3);font-size:11px;font-family:'Noto Sans TC',sans-serif;transition:color var(--t);}
+.bnav-btn.active{color:var(--accent);}
+
+/* ── DETAIL ── */
+#v-detail{background:var(--bg);padding-bottom:100px;}
+.top-nav{display:flex;justify-content:space-between;align-items:center;padding:52px 20px 16px;}
+.book-hero{display:flex;gap:20px;padding:0 24px 24px;border-bottom:1px solid var(--border2);}
+.hero-cover{width:80px;height:114px;border-radius:6px;overflow:hidden;background:var(--paper2);flex-shrink:0;box-shadow:3px 5px 16px rgba(44,36,24,0.2);display:flex;align-items:center;justify-content:center;}
+.hero-cover img{width:100%;height:100%;object-fit:cover;}
+.hero-meta{flex:1;}
+.hero-eye{font-size:10px;letter-spacing:2px;color:var(--ink3);margin-bottom:6px;}
+.hero-title{font-family:'Noto Serif TC',serif;font-size:20px;font-weight:700;color:var(--ink);line-height:1.35;margin-bottom:4px;}
+.hero-author{font-size:13px;color:var(--ink2);margin-bottom:3px;}
+.hero-year{font-size:13px;color:var(--ink3);margin-bottom:14px;font-style:italic;}
+.status-pill{display:inline-flex;border:1px solid var(--border);border-radius:30px;overflow:hidden;background:var(--paper);}
+.spill{padding:7px 16px;font-size:13px;font-weight:500;border:none;background:transparent;font-family:'Noto Sans TC',sans-serif;cursor:pointer;color:var(--ink2);transition:all var(--t);}
+.spill.ar{background:var(--accent);color:white;border-radius:30px;}
+.spill.ad{background:var(--ink);color:white;border-radius:30px;}
+.ex-header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px 16px;}
+.ex-ttl{font-family:'Noto Serif TC',serif;font-size:18px;font-weight:700;display:flex;align-items:baseline;gap:8px;}
+.ex-cnt{font-size:14px;color:var(--ink3);font-style:italic;font-family:'Playfair Display',serif;}
+.btn-new-ex{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--accent);font-weight:500;border:none;background:transparent;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+.ex-item{padding:20px 24px;border-top:1px solid var(--border2);cursor:pointer;transition:background var(--t);}
+.ex-item:active{background:var(--paper2);}
+.ex-quote{font-family:'Noto Serif TC',serif;font-size:15px;line-height:1.85;color:var(--ink);margin-bottom:10px;}
+.ex-quote::before{content:'「';}
+.ex-quote::after{content:'」';}
+.ex-foot{display:flex;gap:12px;align-items:center;}
+.ex-page{font-size:12px;color:var(--ink3);font-style:italic;}
+.ex-date{font-size:12px;color:var(--ink3);}
+.ex-note-prev{font-size:13px;color:var(--ink2);margin-top:8px;line-height:1.5;font-style:italic;}
+.no-ex{text-align:center;padding:48px 24px;color:var(--ink3);font-size:13px;line-height:2.4;}
+
+/* ── EXCERPT VIEW ── */
+#v-excerpt{background:var(--bg);}
+.ev-nav{display:flex;justify-content:space-between;align-items:center;padding:52px 20px 16px;}
+.ev-from{font-size:11px;color:var(--ink3);letter-spacing:.5px;}
+.ev-book{font-size:15px;font-weight:500;font-family:'Noto Serif TC',serif;}
+.ev-body{padding:24px;}
+.ev-sec{font-size:10px;letter-spacing:2px;color:var(--ink3);font-weight:500;margin-bottom:16px;}
+.ev-text{font-family:'Noto Serif TC',serif;font-size:22px;line-height:1.85;color:var(--ink);margin-bottom:28px;}
+.ev-page{font-size:14px;color:var(--ink2);font-style:italic;margin-bottom:4px;}
+.ev-note-lbl{font-size:10px;letter-spacing:2px;color:var(--ink3);font-weight:500;margin-top:28px;margin-bottom:12px;border-top:1px solid var(--border2);padding-top:24px;}
+.ev-note{font-size:15px;color:var(--ink2);line-height:1.7;}
+
+/* ── EDITOR ── */
+#v-editor{background:var(--bg);}
+.ed-nav{display:flex;align-items:center;gap:14px;padding:52px 20px 16px;border-bottom:1px solid var(--border2);}
+.ed-from{font-size:11px;color:var(--ink3);letter-spacing:.5px;}
+.ed-book{font-size:15px;font-weight:500;font-family:'Noto Serif TC',serif;}
+.ed-body{padding:24px 24px 140px;}
+.ed-lbl{font-size:10px;letter-spacing:2px;color:var(--ink3);font-weight:500;display:block;margin-bottom:12px;}
+.ed-ta{width:100%;border:none;background:transparent;font-family:'Noto Serif TC',serif;font-size:19px;line-height:1.85;color:var(--ink);resize:none;outline:none;min-height:160px;margin-bottom:4px;}
+.ed-in{width:100%;border:none;border-top:1px solid var(--border2);background:transparent;font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--ink);padding:16px 0;outline:none;}
+.ed-na{width:100%;border:none;border-top:1px solid var(--border2);background:transparent;font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--ink);padding:16px 0;outline:none;resize:none;min-height:90px;}
+.ed-save{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:12px 24px calc(12px + env(safe-area-inset-bottom,0));background:var(--bg);border-top:1px solid var(--border2);}
+.btn-save{width:100%;background:var(--accent);color:white;border:none;border-radius:14px;padding:17px;font-size:16px;font-weight:500;font-family:'Noto Sans TC',sans-serif;cursor:pointer;letter-spacing:1px;}
+.btn-save:active{opacity:.85;}
+
+/* ── REVIEW ── */
+#v-review{padding-bottom:90px;}
+.rv-top{padding:52px 24px 24px;}
+.rv-eye{font-size:11px;letter-spacing:2.5px;color:var(--ink3);margin-bottom:8px;}
+.rv-title{font-family:'Noto Serif TC',serif;font-size:38px;font-weight:700;color:var(--ink);letter-spacing:-1px;}
+.rv-card{margin:0 24px 20px;background:var(--paper);border-radius:16px;border:1px solid var(--border2);overflow:hidden;}
+.rv-card-top{padding:20px 20px 16px;border-bottom:1px solid var(--border2);}
+.rv-card-lbl{font-size:10px;letter-spacing:2px;color:var(--ink3);margin-bottom:14px;}
+.rv-card-quote{font-family:'Noto Serif TC',serif;font-size:17px;line-height:1.85;color:var(--ink);}
+.rv-card-note{padding:12px 20px;background:var(--bg);border-top:1px solid var(--border2);font-size:13px;color:var(--ink2);line-height:1.6;font-style:italic;}
+.rv-card-bottom{padding:12px 20px;display:flex;justify-content:space-between;align-items:center;}
+.rv-card-book{font-size:13px;color:var(--accent);font-weight:500;}
+.rv-card-page{font-size:12px;color:var(--ink3);font-style:italic;}
+.btn-shuffle{width:100%;border:none;background:transparent;font-size:13px;color:var(--ink2);font-family:'Noto Sans TC',sans-serif;cursor:pointer;padding:13px;display:flex;align-items:center;justify-content:center;gap:6px;border-top:1px solid var(--border2);}
+.rv-all-lbl{padding:8px 24px 12px;font-size:11px;letter-spacing:2px;color:var(--ink3);font-weight:500;}
+.rv-item{padding:16px 24px;border-top:1px solid var(--border2);cursor:pointer;transition:background var(--t);}
+.rv-item:active{background:var(--paper2);}
+.rv-item-book{font-size:11px;color:var(--accent);font-weight:500;margin-bottom:8px;}
+.rv-item-text{font-family:'Noto Serif TC',serif;font-size:14px;line-height:1.7;color:var(--ink);}
+.rv-item-note{font-size:12px;color:var(--ink2);margin-top:6px;font-style:italic;}
+.rv-empty{text-align:center;padding:60px 24px;color:var(--ink3);font-size:14px;line-height:2.4;}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;z-index:300;background:rgba(44,36,24,0.4);backdrop-filter:blur(3px);display:none;align-items:flex-end;}
+.modal-bg.open{display:flex;}
+.modal-sheet{background:var(--paper);border-radius:20px 20px 0 0;width:100%;max-width:480px;margin:0 auto;padding:0 0 40px;max-height:92vh;overflow-y:auto;animation:slideup .25s ease;}
+@keyframes slideup{from{transform:translateY(50px);opacity:0;}}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:14px auto 20px;}
+.sheet-title{font-family:'Noto Serif TC',serif;font-size:18px;font-weight:700;padding:0 20px 16px;border-bottom:1px solid var(--border2);}
+.tab-row{display:flex;gap:0;margin:12px 20px 0;background:var(--bg);border-radius:10px;padding:3px;}
+.tab-btn{flex:1;border:none;background:transparent;padding:9px;font-size:13px;font-family:'Noto Sans TC',sans-serif;color:var(--ink2);cursor:pointer;border-radius:8px;font-weight:500;transition:all var(--t);}
+.tab-btn.active{background:var(--paper);color:var(--ink);box-shadow:0 1px 4px rgba(44,36,24,0.1);}
+.search-bar{display:flex;align-items:center;margin:12px 20px 0;background:var(--bg);border-radius:12px;border:1px solid var(--border);padding:0 14px;gap:10px;}
+.search-bar input{flex:1;border:none;background:transparent;font-size:15px;font-family:'Noto Sans TC',sans-serif;color:var(--ink);padding:13px 0;outline:none;}
+.sr-item{display:flex;gap:14px;padding:12px 20px;cursor:pointer;transition:background var(--t);}
+.sr-item:active{background:var(--bg);}
+.sr-cov{width:46px;height:64px;border-radius:4px;background:var(--bg);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.sr-cov img{width:100%;height:100%;object-fit:cover;}
+.sr-ttl{font-family:'Noto Serif TC',serif;font-size:14px;line-height:1.4;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:3px;}
+.sr-auth{font-size:12px;color:var(--ink2);}
+.search-msg{text-align:center;padding:24px;font-size:13px;color:var(--ink3);line-height:2;}
+
+/* MANUAL FORM */
+.manual-form{padding:16px 20px;}
+.mf-label{font-size:11px;letter-spacing:1px;color:var(--ink3);font-weight:500;display:block;margin-bottom:6px;margin-top:14px;}
+.mf-label:first-of-type{margin-top:0;}
+.mf-in{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:15px;font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink);outline:none;transition:border-color var(--t);}
+.mf-in:focus{border-color:var(--accent2);}
+
+/* STATUS PICK */
+.status-pick{padding:16px 20px;}
+.sp-prev{display:flex;gap:14px;align-items:center;padding:14px;background:var(--bg);border-radius:12px;margin-bottom:20px;}
+.sp-cov{width:44px;height:62px;border-radius:4px;overflow:hidden;background:var(--paper2);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.sp-cov img{width:100%;height:100%;object-fit:cover;}
+.sp-lbl{font-size:11px;letter-spacing:1px;color:var(--ink3);margin-bottom:4px;}
+.sp-ttl{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:500;line-height:1.4;}
+.sp-auth{font-size:12px;color:var(--ink2);margin-top:3px;}
+.status-opts{display:flex;gap:10px;margin-bottom:20px;}
+.sopt{flex:1;padding:16px 12px;text-align:center;border:1px solid var(--border);border-radius:12px;background:var(--paper);cursor:pointer;font-size:14px;font-weight:500;font-family:'Noto Sans TC',sans-serif;color:var(--ink2);transition:all var(--t);}
+.sopt-sub{font-size:11px;margin-top:4px;opacity:.7;font-weight:400;}
+.sopt.sel-r{background:var(--accent);border-color:var(--accent);color:white;}
+.sopt.sel-d{background:var(--ink);border-color:var(--ink);color:white;}
+.btn-confirm{width:100%;background:var(--accent);color:white;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:500;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:opacity var(--t);}
+.btn-confirm:disabled{opacity:.35;}
+
+/* TOAST */
+.toast{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(44,36,24,0.88);color:white;font-size:13px;padding:14px 20px;display:none;z-index:500;justify-content:center;align-items:center;gap:8px;backdrop-filter:blur(6px);}
+.toast.show{display:flex;}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toast-msg"></span>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SETUP SCREEN (first-time Client ID entry)
+     ══════════════════════════════════════════ -->
+<div id="v-setup" style="display:none;">
+  <div class="setup-icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+  </div>
+  <div class="setup-title">設定 Google 登入</div>
+  <div class="setup-sub">只需一次設定，之後就能用 Google 帳號<br>登入並自動同步書架到雲端</div>
+
+  <div class="setup-step">
+    <div class="step-n">STEP 1</div>
+    <div class="step-t">前往 <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>，建立新專案（隨意命名）</div>
+  </div>
+  <div class="setup-step">
+    <div class="step-n">STEP 2</div>
+    <div class="step-t">啟用 <strong>Google Books API</strong> 和 <strong>Google Drive API</strong></div>
+  </div>
+  <div class="setup-step">
+    <div class="step-n">STEP 3</div>
+    <div class="step-t">建立 OAuth 2.0 憑證，類型選「<strong>網路應用程式</strong>」，授權 JavaScript 來源填入你的 GitHub Pages 網址（或 <code>http://localhost</code> 測試用）</div>
+  </div>
+  <div class="setup-step">
+    <div class="step-n">STEP 4</div>
+    <div class="step-t">複製「用戶端 ID」貼到下方</div>
+  </div>
+
+  <input class="setup-input" id="client-id-input" placeholder="貼上 Google OAuth Client ID…" autocomplete="off">
+  <button class="btn-start" onclick="saveClientId()">開始使用</button>
+  <div style="margin-top:16px;">
+    <button style="border:none;background:transparent;color:var(--ink3);font-size:13px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;text-decoration:underline;" onclick="skipSetup()">先跳過，不使用 Google 同步</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LOGIN SCREEN
+     ══════════════════════════════════════════ -->
+<div id="v-login" style="display:none;">
+  <div class="login-icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+  </div>
+  <div class="login-title">書架</div>
+  <div class="login-sub">登入 Google 帳號<br>書架資料將自動備份至雲端</div>
+  <button class="btn-google" onclick="signIn()">
+    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    以 Google 帳號登入
+  </button>
+  <button class="btn-skip" onclick="skipLogin()">不登入，僅本機使用</button>
+  <div style="margin-top:24px;">
+    <button style="border:none;background:transparent;color:var(--ink3);font-size:12px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;text-decoration:underline;" onclick="showSetup()">重新設定 Client ID</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN APP
+     ══════════════════════════════════════════ -->
+
+<!-- LIBRARY -->
+<div class="view" id="v-library">
+  <div class="lib-top">
+    <div class="lib-heading">
+      <div class="lib-eyebrow">A READING JOURNAL</div>
+      <div class="lib-title">書架</div>
+    </div>
+    <div class="lib-top-actions">
+      <div class="btn-circle" id="btn-sync" title="同步">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.7"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/></svg>
+      </div>
+      <div class="btn-circle" id="btn-open-add">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+    </div>
+  </div>
+  <div class="lib-section">
+    <div class="lib-sec-label">正在讀 <span class="lib-sec-count" id="cnt-r">0</span></div>
+    <div class="books-row" id="row-reading"></div>
+  </div>
+  <div class="lib-section">
+    <div class="lib-sec-label">已讀完 <span class="lib-sec-count" id="cnt-d">0</span></div>
+    <div class="books-row" id="row-done"></div>
+  </div>
+</div>
+
+<!-- REVIEW -->
+<div class="view" id="v-review">
+  <div class="rv-top">
+    <div class="rv-eye">LOOK BACK</div>
+    <div class="rv-title">回顧</div>
+  </div>
+  <div id="rv-body"></div>
+</div>
+
+<!-- DETAIL -->
+<div class="view" id="v-detail">
+  <div class="top-nav">
+    <div class="btn-circle" onclick="nav('library')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="btn-circle" id="btn-del-book">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </div>
+  </div>
+  <div id="detail-hero"></div>
+  <div id="excerpts-area"></div>
+</div>
+
+<!-- EXCERPT VIEW -->
+<div class="view" id="v-excerpt">
+  <div class="ev-nav">
+    <div class="btn-circle" id="btn-back-ex">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div style="flex:1;padding:0 12px;">
+      <div class="ev-from">摘自</div>
+      <div class="ev-book" id="ev-bname"></div>
+    </div>
+    <div class="btn-circle" id="btn-del-ex">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </div>
+  </div>
+  <div class="ev-body" id="ev-body"></div>
+</div>
+
+<!-- EDITOR -->
+<div class="view" id="v-editor">
+  <div class="ed-nav">
+    <div class="btn-circle" id="btn-back-ed">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div>
+      <div class="ed-from">摘自</div>
+      <div class="ed-book" id="ed-bname"></div>
+    </div>
+  </div>
+  <div class="ed-body">
+    <span class="ed-lbl">EXCERPT</span>
+    <textarea class="ed-ta" id="ed-text" placeholder="輸入想記錄的段落…"></textarea>
+    <input class="ed-in" id="ed-page" placeholder="PAGE / CHAPTER　例：p. 134">
+    <textarea class="ed-na" id="ed-note" placeholder="NOTE　（選填）為什麼想記下這一段？" rows="3"></textarea>
+  </div>
+  <div class="ed-save">
+    <button class="btn-save" onclick="saveExcerpt()">儲存摘錄</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav" id="bnav" style="display:none;">
+  <button class="bnav-btn active" id="bnav-library" onclick="nav('library')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    書庫
+  </button>
+  <button class="bnav-btn" id="bnav-review" onclick="nav('review')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    回顧
+  </button>
+</div>
+
+<!-- ADD BOOK MODAL -->
+<div class="modal-bg" id="modal-add" onclick="closeBg(event,'modal-add')">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">新增書籍</div>
+    <div class="tab-row">
+      <button class="tab-btn active" id="tab-search" onclick="switchTab('search')">搜尋</button>
+      <button class="tab-btn" id="tab-manual" onclick="switchTab('manual')">手動輸入</button>
+    </div>
+    <!-- SEARCH TAB -->
+    <div id="pane-search">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="sinput" placeholder="書名、作者或 ISBN…" oninput="debSearch(this.value)">
+      </div>
+      <div id="sresults"><div class="search-msg">輸入書名搜尋<br><span style="font-size:12px;color:var(--ink3)">找不到的話可切換到「手動輸入」</span></div></div>
+    </div>
+    <!-- MANUAL TAB -->
+    <div id="pane-manual" style="display:none;" class="manual-form">
+      <label class="mf-label">書名 *</label>
+      <input class="mf-in" id="m-title" placeholder="例：原子習慣">
+      <label class="mf-label">作者</label>
+      <input class="mf-in" id="m-author" placeholder="例：詹姆斯．克利爾">
+      <label class="mf-label">出版年份</label>
+      <input class="mf-in" id="m-year" placeholder="例：2019" type="number">
+      <button class="btn-confirm" style="margin-top:20px;" onclick="confirmManual()">下一步</button>
+    </div>
+    <!-- STATUS PICK -->
+    <div id="spick" style="display:none;" class="status-pick">
+      <div class="sp-prev" id="sp-preview"></div>
+      <div style="font-size:11px;letter-spacing:1px;color:var(--ink3);margin-bottom:10px;font-weight:500;">閱讀狀態</div>
+      <div class="status-opts">
+        <div class="sopt" id="sopt-r" onclick="pickSt('reading')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="display:block;margin:0 auto 4px;"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+          <div class="sopt-sub">正在讀</div>
+        </div>
+        <div class="sopt" id="sopt-d" onclick="pickSt('done')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="display:block;margin:0 auto 4px;"><polyline points="20 6 9 17 4 12"/></svg>
+          <div class="sopt-sub">已讀完</div>
+        </div>
+      </div>
+      <button class="btn-confirm" id="btn-add" disabled onclick="confirmAdd()">加入書架</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCRIPTS
+     ══════════════════════════════════════════ -->
+<script>
+// ─────────────────────────────────────────────
+// CONFIG & STATE
+// ─────────────────────────────────────────────
+const KEY = 'bookshelf_v4';
+const GDRIVE_FILE = 'bookshelf_data.json';
+const SCOPES = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/books';
+
+let S = { books:[], excerpts:[] };
+let curBook=null, curEx=null, pendBook=null, pendSt=null;
+let stimer=null, lastQ='', _sr=[], curTab='search';
+let gToken=null; // Google OAuth access token
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+function init() {
+  loadLocal();
+  const clientId = localStorage.getItem('gClientId');
+  if (!clientId) { showScreen('setup'); return; }
+  // Load GSI
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.onload = () => { showScreen('login'); };
+  s.onerror = () => { showScreen('login'); }; // show login anyway
+  document.head.appendChild(s);
+}
+
+function showScreen(s) {
+  document.getElementById('v-setup').style.display = s==='setup' ? 'flex' : 'none';
+  document.getElementById('v-login').style.display = s==='login' ? 'flex' : 'none';
+  if (s==='app') {
+    document.getElementById('v-login').style.display='none';
+    document.getElementById('v-setup').style.display='none';
+    document.getElementById('bnav').style.display='flex';
+    nav('library');
+  }
+}
+
+// ─────────────────────────────────────────────
+// SETUP
+// ─────────────────────────────────────────────
+function saveClientId() {
+  const val = document.getElementById('client-id-input').value.trim();
+  if (!val) { toast('請輸入 Client ID'); return; }
+  localStorage.setItem('gClientId', val);
+  location.reload();
+}
+function skipSetup() {
+  localStorage.setItem('gClientId', '');
+  skipLogin();
+}
+function showSetup() { showScreen('setup'); }
+
+// ─────────────────────────────────────────────
+// GOOGLE SIGN IN
+// ─────────────────────────────────────────────
+function signIn() {
+  const clientId = localStorage.getItem('gClientId');
+  if (!clientId || !window.google) { toast('Google 服務未載入，請稍後再試'); return; }
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: SCOPES,
+    callback: (resp) => {
+      if (resp.error) { toast('登入失敗：' + resp.error); return; }
+      gToken = resp.access_token;
+      localStorage.setItem('gToken', gToken);
+      toast('✓ 已登入 Google');
+      showScreen('app');
+      pullFromDrive();
+    }
+  });
+  client.requestAccessToken();
+}
+function skipLogin() {
+  gToken = localStorage.getItem('gToken') || null;
+  showScreen('app');
+}
+
+// ─────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────
+const ALL_VIEWS=['library','review','detail','excerpt','editor'];
+const NAV_VIEWS=['library','review'];
+function nav(v) {
+  ALL_VIEWS.forEach(id=>document.getElementById('v-'+id)?.classList.toggle('show',id===v));
+  document.getElementById('bnav').style.display=NAV_VIEWS.includes(v)?'flex':'none';
+  NAV_VIEWS.forEach(id=>document.getElementById('bnav-'+id)?.classList.toggle('active',id===v));
+  window.scrollTo(0,0);
+  if(v==='library')renderLib();
+  if(v==='review')renderReview();
+}
+
+// ─────────────────────────────────────────────
+// LIBRARY
+// ─────────────────────────────────────────────
+function renderLib() {
+  const r=S.books.filter(b=>b.status==='reading');
+  const d=S.books.filter(b=>b.status==='done');
+  document.getElementById('cnt-r').textContent=r.length;
+  document.getElementById('cnt-d').textContent=d.length;
+  renderRow('row-reading',r);
+  renderRow('row-done',d);
+}
+function renderRow(id,books) {
+  const el=document.getElementById(id);
+  if(!books.length){el.innerHTML='<div class="empty-row">尚無書籍</div>';return;}
+  el.innerHTML=books.map(b=>{
+    const img=b.cover?`<img src="${b.cover}" alt="" onerror="this.style.display='none'">`:bkSvg(28);
+    return `<div class="book-thumb" onclick="openBook('${b.id}')"><div class="bcover">${img}</div><div class="bthumb-title">${esc(b.title)}</div></div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// DETAIL
+// ─────────────────────────────────────────────
+function openBook(id) {
+  curBook=S.books.find(b=>b.id===id);
+  if(!curBook)return;
+  const b=curBook;
+  const img=b.cover?`<img src="${b.cover}" alt="">`:bkSvg(28);
+  document.getElementById('detail-hero').innerHTML=`
+    <div class="book-hero">
+      <div class="hero-cover">${img}</div>
+      <div class="hero-meta">
+        <div class="hero-eye">LIBRARY</div>
+        <div class="hero-title">${esc(b.title)}</div>
+        <div class="hero-author">${esc(b.author)}</div>
+        ${b.year?`<div class="hero-year">${b.year}</div>`:''}
+        <div class="status-pill">
+          <button class="spill ${b.status==='reading'?'ar':''}" onclick="setSt('reading')">正在讀</button>
+          <button class="spill ${b.status==='done'?'ad':''}" onclick="setSt('done')">已讀完</button>
+        </div>
+      </div>
+    </div>`;
+  renderExs();
+  document.getElementById('btn-del-book').onclick=()=>{
+    if(!confirm('確定刪除此書及所有摘錄？'))return;
+    S.books=S.books.filter(x=>x.id!==id);
+    S.excerpts=S.excerpts.filter(x=>x.bookId!==id);
+    save();nav('library');
+  };
+  nav('detail');
+}
+function setSt(s){if(!curBook)return;curBook.status=s;save();openBook(curBook.id);}
+function renderExs() {
+  const exs=S.excerpts.filter(e=>e.bookId===curBook.id).sort((a,b)=>b.ts-a.ts);
+  document.getElementById('excerpts-area').innerHTML=`
+    <div class="ex-header">
+      <div class="ex-ttl">摘錄 <span class="ex-cnt">${exs.length||''}</span></div>
+      <button class="btn-new-ex" onclick="openEditor()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新增
+      </button>
+    </div>
+    ${exs.length===0?'<div class="no-ex">還沒有摘錄<br>點右上角「＋ 新增」<br>記下第一段文字</div>':''}
+    ${exs.map(e=>`<div class="ex-item" onclick="openEx('${e.id}')">
+      <div class="ex-quote">${esc(e.text)}</div>
+      <div class="ex-foot">
+        ${e.page?`<span class="ex-page">${esc(e.page)}</span>`:''}
+        <span class="ex-date">${fdate(e.ts)}</span>
+      </div>
+      ${e.note?`<div class="ex-note-prev">${esc(e.note)}</div>`:''}
+    </div>`).join('')}`;
+}
+
+// ─────────────────────────────────────────────
+// EXCERPT VIEW
+// ─────────────────────────────────────────────
+function openEx(id) {
+  curEx=S.excerpts.find(x=>x.id===id);
+  if(!curEx)return;
+  const b=S.books.find(x=>x.id===curEx.bookId);
+  document.getElementById('ev-bname').textContent=b?.title||'';
+  document.getElementById('ev-body').innerHTML=`
+    <div class="ev-sec">EXCERPT</div>
+    <div class="ev-text">${esc(curEx.text).replace(/\n/g,'<br>')}</div>
+    ${curEx.page?`<div class="ev-page">${esc(curEx.page)}</div>`:''}
+    ${curEx.note?`<div class="ev-note-lbl">NOTE</div><div class="ev-note">${esc(curEx.note).replace(/\n/g,'<br>')}</div>`:''}`;
+  document.getElementById('btn-back-ex').onclick=()=>openBook(curEx.bookId);
+  document.getElementById('btn-del-ex').onclick=()=>{
+    if(!confirm('刪除這則摘錄？'))return;
+    const bid=curEx.bookId;
+    S.excerpts=S.excerpts.filter(x=>x.id!==id);
+    save();openBook(bid);
+  };
+  nav('excerpt');
+}
+
+// ─────────────────────────────────────────────
+// EDITOR
+// ─────────────────────────────────────────────
+function openEditor() {
+  document.getElementById('ed-bname').textContent=curBook?.title||'';
+  document.getElementById('ed-text').value='';
+  document.getElementById('ed-page').value='';
+  document.getElementById('ed-note').value='';
+  document.getElementById('btn-back-ed').onclick=()=>openBook(curBook.id);
+  nav('editor');
+  setTimeout(()=>document.getElementById('ed-text').focus(),300);
+}
+function saveExcerpt() {
+  const text=document.getElementById('ed-text').value.trim();
+  if(!text){toast('請輸入摘錄內容');return;}
+  S.excerpts.push({id:uid(),bookId:curBook.id,text,page:document.getElementById('ed-page').value.trim(),note:document.getElementById('ed-note').value.trim(),ts:Date.now()});
+  save();openBook(curBook.id);
+}
+
+// ─────────────────────────────────────────────
+// REVIEW
+// ─────────────────────────────────────────────
+function renderReview() {
+  const body=document.getElementById('rv-body');
+  const all=[...S.excerpts].sort((a,b)=>b.ts-a.ts);
+  if(!all.length){body.innerHTML='<div class="rv-empty">還沒有任何摘錄<br>從書庫選一本書開始記錄吧</div>';return;}
+  const r=all[Math.floor(Math.random()*all.length)];
+  const rb=S.books.find(b=>b.id===r.bookId);
+  body.innerHTML=`
+    <div class="rv-card">
+      <div class="rv-card-top">
+        <div class="rv-card-lbl">RANDOM EXCERPT</div>
+        <div class="rv-card-quote">${esc(r.text).replace(/\n/g,'<br>')}</div>
+      </div>
+      ${r.note?`<div class="rv-card-note">${esc(r.note)}</div>`:''}
+      <div class="rv-card-bottom">
+        <span class="rv-card-book">《${esc(rb?.title||'')}》</span>
+        ${r.page?`<span class="rv-card-page">${esc(r.page)}</span>`:''}
+      </div>
+      <button class="btn-shuffle" onclick="renderReview()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+        換一則
+      </button>
+    </div>
+    <div class="rv-all-lbl">全部摘錄 · ${all.length} 則</div>
+    ${all.map(e=>{const bk=S.books.find(b=>b.id===e.bookId);return`<div class="rv-item" onclick="openEx('${e.id}')">
+      <div class="rv-item-book">《${esc(bk?.title||'')}》${e.page?' · '+esc(e.page):''}</div>
+      <div class="rv-item-text">${esc(e.text)}</div>
+      ${e.note?`<div class="rv-item-note">${esc(e.note)}</div>`:''}
+    </div>`;}).join('')}`;
+}
+
+// ─────────────────────────────────────────────
+// ADD BOOK MODAL
+// ─────────────────────────────────────────────
+document.getElementById('btn-open-add').onclick=openAdd;
+function openAdd(){
+  pendBook=null;pendSt=null;
+  switchTab('search');
+  document.getElementById('sinput').value='';
+  document.getElementById('sresults').innerHTML='<div class="search-msg">輸入書名搜尋<br><span style="font-size:12px;color:var(--ink3)">找不到的話可切換到「手動輸入」</span></div>';
+  document.getElementById('spick').style.display='none';
+  document.getElementById('pane-search').style.display='block';
+  document.getElementById('modal-add').classList.add('open');
+  setTimeout(()=>document.getElementById('sinput').focus(),300);
+}
+function closeBg(e,id){if(e.target===document.getElementById(id))document.getElementById(id).classList.remove('open');}
+function switchTab(t){
+  curTab=t;
+  document.getElementById('tab-search').classList.toggle('active',t==='search');
+  document.getElementById('tab-manual').classList.toggle('active',t==='manual');
+  document.getElementById('pane-search').style.display=t==='search'?'block':'none';
+  document.getElementById('pane-manual').style.display=t==='manual'?'block':'none';
+  document.getElementById('spick').style.display='none';
+  if(t==='manual') setTimeout(()=>document.getElementById('m-title').focus(),200);
+  if(t==='search') setTimeout(()=>document.getElementById('sinput').focus(),200);
+}
+
+// SEARCH
+function debSearch(q){
+  clearTimeout(stimer);
+  if(!q.trim()){document.getElementById('sresults').innerHTML='<div class="search-msg">輸入書名搜尋<br><span style="font-size:12px;">找不到的話可切換到「手動輸入」</span></div>';return;}
+  document.getElementById('sresults').innerHTML='<div class="search-msg">搜尋中…</div>';
+  stimer=setTimeout(()=>doSearch(q.trim()),450);
+}
+async function doSearch(q){
+  lastQ=q;
+  const token = gToken ? `&key=` : ''; // no key needed with OAuth token
+  const headers = gToken ? { Authorization: `Bearer ${gToken}` } : {};
+  // Try multiple search strategies
+  const urls=[
+    `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=12&printType=books&orderBy=relevance`,
+    `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(q)}&maxResults=8&printType=books`,
+  ];
+  try{
+    const res=await fetch(urls[0],{headers});
+    if(!res.ok)throw new Error('API '+res.status);
+    const d=await res.json();
+    if(q!==lastQ)return;
+    let items=d.items||[];
+    if(items.length<3){
+      try{const r2=await fetch(urls[1],{headers});const d2=await r2.json();items=[...items,...(d2.items||[])].filter((v,i,a)=>a.findIndex(x=>x.id===v.id)===i);}catch(e2){}
+    }
+    renderSR(items,q);
+  }catch(err){
+    if(q!==lastQ)return;
+    document.getElementById('sresults').innerHTML=`<div class="search-msg" style="color:#A32D2D;">搜尋失敗<br><span style="font-size:12px;color:var(--ink3);">請確認網路，或切換到「手動輸入」</span></div>`;
+  }
+}
+function renderSR(items,q){
+  _sr=items;
+  if(!items.length){
+    document.getElementById('sresults').innerHTML=`<div class="search-msg">找不到「${esc(q)}」<br><span style="font-size:12px;color:var(--ink3);">試試原文書名，或切換到「手動輸入」</span></div>`;
+    return;
+  }
+  document.getElementById('sresults').innerHTML=items.map((it,i)=>{
+    const info=it.volumeInfo||{};
+    const th=(info.imageLinks?.thumbnail||info.imageLinks?.smallThumbnail||'').replace('http:','https:');
+    const au=(info.authors||[]).join('、')||'作者不詳';
+    return`<div class="sr-item" onclick="pickBook(${i})">
+      <div class="sr-cov">${th?`<img src="${th}" alt="">`:bkSvg(18)}</div>
+      <div><div class="sr-ttl">${esc(info.title||'未知書名')}</div><div class="sr-auth">${esc(au)}</div></div>
+    </div>`;
+  }).join('');
+}
+function pickBook(i){
+  const it=_sr[i],info=it.volumeInfo||{};
+  const th=(info.imageLinks?.thumbnail||info.imageLinks?.smallThumbnail||'').replace('http:','https:');
+  const au=(info.authors||[]).join('、')||'作者不詳';
+  pendBook={id:it.id||uid(),title:info.title||'未知書名',author:au,cover:th,year:(info.publishedDate||'').slice(0,4)};
+  showStatusPick();
+}
+function confirmManual(){
+  const title=document.getElementById('m-title').value.trim();
+  if(!title){toast('請輸入書名');return;}
+  pendBook={id:uid(),title,author:document.getElementById('m-author').value.trim()||'',cover:'',year:document.getElementById('m-year').value.trim()};
+  showStatusPick();
+}
+function showStatusPick(){
+  pendSt=null;
+  document.getElementById('sopt-r').className='sopt';
+  document.getElementById('sopt-d').className='sopt';
+  document.getElementById('btn-add').disabled=true;
+  const th=pendBook.cover;
+  document.getElementById('sp-preview').innerHTML=`
+    <div class="sp-cov">${th?`<img src="${th}" alt="">`:bkSvg(18)}</div>
+    <div><div class="sp-lbl">SELECTED</div><div class="sp-ttl">${esc(pendBook.title)}</div><div class="sp-auth">${esc(pendBook.author)}</div></div>`;
+  document.getElementById('pane-search').style.display='none';
+  document.getElementById('pane-manual').style.display='none';
+  document.getElementById('spick').style.display='block';
+}
+function pickSt(s){
+  pendSt=s;
+  document.getElementById('sopt-r').className='sopt'+(s==='reading'?' sel-r':'');
+  document.getElementById('sopt-d').className='sopt'+(s==='done'?' sel-d':'');
+  document.getElementById('btn-add').disabled=false;
+}
+function confirmAdd(){
+  if(!pendBook||!pendSt)return;
+  if(S.books.find(b=>b.id===pendBook.id)){
+    // duplicate id (manual has random id, so this is rare — just update status)
+  }
+  pendBook.status=pendSt;pendBook.addedAt=Date.now();
+  S.books.unshift(pendBook);save();
+  document.getElementById('modal-add').classList.remove('open');
+  renderLib();
+}
+
+// ─────────────────────────────────────────────
+// SYNC BUTTON
+// ─────────────────────────────────────────────
+document.getElementById('btn-sync').onclick=()=>{
+  if(!gToken){toast('請先登入 Google 才能同步');return;}
+  pushToDrive();
+};
+
+// ─────────────────────────────────────────────
+// GOOGLE DRIVE SYNC
+// ─────────────────────────────────────────────
+let driveFileId=null;
+
+async function getOrCreateDriveFile(){
+  // Search in appDataFolder
+  const search=await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${GDRIVE_FILE}'&fields=files(id,name)`,{headers:{Authorization:`Bearer ${gToken}`}});
+  const sd=await search.json();
+  if(sd.files&&sd.files.length>0){driveFileId=sd.files[0].id;return driveFileId;}
+  // Create
+  const meta={name:GDRIVE_FILE,parents:['appDataFolder']};
+  const form=new FormData();
+  form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
+  form.append('file',new Blob([JSON.stringify(S)],{type:'application/json'}));
+  const cr=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{Authorization:`Bearer ${gToken}`},body:form});
+  const cd=await cr.json();
+  driveFileId=cd.id;return driveFileId;
+}
+
+async function pushToDrive(){
+  if(!gToken)return;
+  toast('同步中…');
+  try{
+    const fid=await getOrCreateDriveFile();
+    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fid}?uploadType=media`,{
+      method:'PATCH',
+      headers:{Authorization:`Bearer ${gToken}`,'Content-Type':'application/json'},
+      body:JSON.stringify(S)
+    });
+    toast('✓ 已同步至 Google Drive');
+  }catch(e){toast('同步失敗：'+e.message);}
+}
+
+async function pullFromDrive(){
+  if(!gToken)return;
+  try{
+    const fid=await getOrCreateDriveFile();
+    const res=await fetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`,{headers:{Authorization:`Bearer ${gToken}`}});
+    if(!res.ok)return;
+    const remote=await res.json();
+    if(remote.books&&remote.excerpts){
+      // Merge by id
+      const bIds=new Set(S.books.map(b=>b.id));
+      remote.books.forEach(b=>{if(!bIds.has(b.id))S.books.push(b);});
+      const eIds=new Set(S.excerpts.map(e=>e.id));
+      remote.excerpts.forEach(e=>{if(!eIds.has(e.id))S.excerpts.push(e);});
+      saveLocal();renderLib();
+      toast('✓ 已從雲端載入');
+    }
+  }catch(e){/* silent */}
+}
+
+// Auto-push 5s after changes
+let autoSync=null;
+function scheduleSync(){clearTimeout(autoSync);autoSync=setTimeout(()=>{if(gToken)pushToDrive();},5000);}
+
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+function saveLocal(){localStorage.setItem(KEY,JSON.stringify(S));}
+function loadLocal(){try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');S.books=d.books||[];S.excerpts=d.excerpts||[];}catch(e){}}
+function save(){saveLocal();scheduleSync();}
+
+// ─────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────
+let _toastTimer=null;
+function toast(msg,ms=2600){
+  const el=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'),ms);
+}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fdate(ts){const d=new Date(ts);return`${d.getMonth()+1}月${d.getDate()}日`;}
+function bkSvg(s){return`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="1.4"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`;}
+
+// ─────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
