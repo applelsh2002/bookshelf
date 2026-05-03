@@ -370,7 +370,7 @@ function manualSignIn() {
     callback: (resp) => {
       if (resp.error) { toast('授權失敗：' + resp.error); return; }
       gToken = resp.access_token;
-      toast('✓ 已連線 Google Drive');
+      toast('已連線 Google Drive');
       pushToDrive();
     }
   });
@@ -559,7 +559,7 @@ function switchTab(t) {
   if (t==='search') setTimeout(()=>document.getElementById('sinput').focus(), 200);
 }
 
-// SEARCH (Books API — public, no auth needed)
+// SEARCH (Books API)
 function debSearch(q) {
   clearTimeout(stimer);
   if (!q.trim()) { document.getElementById('sresults').innerHTML='<div class="search-msg">輸入書名搜尋<br><small>找不到可切換「手動輸入」</small></div>'; return; }
@@ -569,23 +569,33 @@ function debSearch(q) {
 async function doSearch(q) {
   lastQ = q;
   try {
-    // Add auth header if available (higher quota)
+    // Use OAuth token if available for higher quota; Books API is public otherwise
     const hdrs = gToken ? { Authorization: `Bearer ${gToken}` } : {};
-    const [r1, r2] = await Promise.all([
-      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=10&printType=books&orderBy=relevance`, { headers: hdrs }),
-      fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(q)}&maxResults=6&printType=books`, { headers: hdrs }),
-    ]);
+    const base = 'https://www.googleapis.com/books/v1/volumes';
+    const r1 = await fetch(`${base}?q=${encodeURIComponent(q)}&maxResults=10&printType=books&orderBy=relevance`, { headers: hdrs });
     if (q !== lastQ) return;
-    const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
-    const seen = new Set();
-    const items = [...(d1.items||[]), ...(d2.items||[])].filter(v => {
-      if (seen.has(v.id)) return false;
-      seen.add(v.id); return true;
-    });
+    if (!r1.ok) {
+      const errData = await r1.json().catch(()=>({}));
+      const msg = errData?.error?.message || `HTTP ${r1.status}`;
+      document.getElementById('sresults').innerHTML = `<div class="search-msg" style="color:#A32D2D;">搜尋失敗：${esc(msg)}<br><small>請確認 Google Books API 已在 Cloud Console 啟用</small></div>`;
+      return;
+    }
+    const d1 = await r1.json();
+    let items = d1.items || [];
+    // If few results, also try intitle search
+    if (items.length < 4) {
+      try {
+        const r2 = await fetch(`${base}?q=intitle:${encodeURIComponent(q)}&maxResults=6&printType=books`, { headers: hdrs });
+        const d2 = await r2.json();
+        const seen = new Set(items.map(v=>v.id));
+        (d2.items||[]).forEach(v => { if (!seen.has(v.id)) { seen.add(v.id); items.push(v); } });
+      } catch(e) {}
+    }
+    if (q !== lastQ) return;
     renderSR(items, q);
   } catch(err) {
     if (q !== lastQ) return;
-    document.getElementById('sresults').innerHTML = `<div class="search-msg" style="color:#A32D2D;">搜尋失敗，請確認網路<br><small>或切換「手動輸入」</small></div>`;
+    document.getElementById('sresults').innerHTML = `<div class="search-msg" style="color:#A32D2D;">網路錯誤：${esc(err.message)}<br><small>請確認網路連線，或切換「手動輸入」</small></div>`;
   }
 }
 function renderSR(items, q) {
@@ -681,7 +691,7 @@ async function pushToDrive() {
       const cd = await cr.json();
       driveFileId = cd.id;
     }
-    toast('✓ 已備份至 Google Drive');
+    toast('已備份至 Google Drive');
   } catch(e) { toast('備份失敗，請重試'); }
 }
 
@@ -701,7 +711,7 @@ async function pullFromDrive() {
       const eIds = new Set(S.excerpts.map(e=>e.id));
       remote.excerpts.forEach(e => { if(!eIds.has(e.id)) S.excerpts.push(e); });
       saveLocal(); renderLib();
-      toast('✓ 已從 Google Drive 載入');
+      toast('已從 Google Drive 載入');
     }
   } catch(e) { /* silent */ }
 }
