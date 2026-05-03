@@ -233,7 +233,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
       <div class="ev-book" id="ev-bname"></div>
     </div>
     <div style="display:flex;gap:8px;">
-      <!-- 新增：編輯按鈕 -->
       <div class="btn-circle" id="btn-edit-ex">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
       </div>
@@ -331,7 +330,8 @@ const BOOKS_API_KEY = 'AIzaSyAucqmsTYZ4kiUdYkdMagGqUU7cDR5rsFI';
 
 // ── STATE ───────────────────────────────────────────────
 const KEY = 'bs_v5';
-let S = { books:[], excerpts:[] };
+// 新增 deletedIds 陣列，用來記錄被刪除的項目，避免從 Google Drive 重複載入
+let S = { books:[], excerpts:[], deletedIds:[] };
 let curBook=null, curEx=null, pendBook=null, pendSt=null;
 let stimer=null, lastQ='', _sr=[], curTab='search';
 let gToken=null, driveFileId=null;
@@ -415,8 +415,15 @@ function openBook(id) {
       </div>
     </div>`;
   renderExs();
+  
   document.getElementById('btn-del-book').onclick = () => {
     if (!confirm('確定刪除此書及所有摘錄？')) return;
+    
+    // 記錄刪除動作 (防復活墓碑機制)
+    if (!S.deletedIds) S.deletedIds = [];
+    S.deletedIds.push(id); 
+    S.excerpts.forEach(x => { if(x.bookId===id) S.deletedIds.push(x.id); });
+    
     S.books = S.books.filter(x=>x.id!==id);
     S.excerpts = S.excerpts.filter(x=>x.bookId!==id);
     save(); nav('library');
@@ -459,9 +466,15 @@ function openEx(id) {
     ${curEx.note ? `<div class="ev-note-lbl">NOTE</div><div class="ev-note">${esc(curEx.note).replace(/\n/g,'<br>')}</div>` : ''}`;
   document.getElementById('btn-back-ex').onclick = () => openBook(curEx.bookId);
   document.getElementById('btn-edit-ex').onclick = () => openEditor(id); // 綁定編輯功能
+  
   document.getElementById('btn-del-ex').onclick = () => {
     if (!confirm('刪除這則摘錄？')) return;
     const bid = curEx.bookId;
+    
+    // 記錄刪除動作 (防復活墓碑機制)
+    if (!S.deletedIds) S.deletedIds = [];
+    S.deletedIds.push(id);
+    
     S.excerpts = S.excerpts.filter(x=>x.id!==id);
     save(); openBook(bid);
   };
@@ -657,6 +670,12 @@ function pickSt(s) {
 function confirmAdd() {
   if (!pendBook||!pendSt) return;
   pendBook.status=pendSt; pendBook.addedAt=Date.now();
+  
+  // 若再次手動/搜尋加入一本書，將它從刪除清單中移除，允許復活
+  if(S.deletedIds) {
+    S.deletedIds = S.deletedIds.filter(did => did !== pendBook.id);
+  }
+  
   S.books.unshift(pendBook); save();
   document.getElementById('modal-add').classList.remove('open');
   renderLib();
@@ -719,10 +738,28 @@ async function pullFromDrive() {
     if (!res.ok) return;
     const remote = await res.json();
     if (remote.books && remote.excerpts) {
+      
+      // 合併本地與雲端的「已刪除清單」
+      const localDeleted = S.deletedIds || [];
+      const remoteDeleted = remote.deletedIds || [];
+      S.deletedIds = [...new Set([...localDeleted, ...remoteDeleted])];
+      const allDeleted = new Set(S.deletedIds);
+
+      // 為防萬一，清掉本地目前在已刪除清單中的資料
+      S.books = S.books.filter(b => !allDeleted.has(b.id));
+      S.excerpts = S.excerpts.filter(e => !allDeleted.has(e.id));
+
       const bIds = new Set(S.books.map(b=>b.id));
-      remote.books.forEach(b => { if(!bIds.has(b.id)) S.books.push(b); });
+      remote.books.forEach(b => { 
+        // 匯入條件：本地沒有，而且「不在刪除清單內」
+        if(!bIds.has(b.id) && !allDeleted.has(b.id)) S.books.push(b); 
+      });
+      
       const eIds = new Set(S.excerpts.map(e=>e.id));
-      remote.excerpts.forEach(e => { if(!eIds.has(e.id)) S.excerpts.push(e); });
+      remote.excerpts.forEach(e => { 
+        if(!eIds.has(e.id) && !allDeleted.has(e.id)) S.excerpts.push(e); 
+      });
+      
       saveLocal(); renderLib();
       toast('已從 Google Drive 載入');
     }
@@ -738,7 +775,14 @@ function scheduleSync() {
 
 // ── DATA ─────────────────────────────────────────────────
 function saveLocal() { localStorage.setItem(KEY, JSON.stringify(S)); }
-function loadLocal() { try { const d=JSON.parse(localStorage.getItem(KEY)||'{}'); S.books=d.books||[]; S.excerpts=d.excerpts||[]; } catch(e){} }
+function loadLocal() { 
+  try { 
+    const d=JSON.parse(localStorage.getItem(KEY)||'{}'); 
+    S.books=d.books||[]; 
+    S.excerpts=d.excerpts||[]; 
+    S.deletedIds=d.deletedIds||[]; // 載入時也帶入已刪除清單
+  } catch(e){} 
+}
 function save() { saveLocal(); scheduleSync(); }
 
 // ── UTILS ─────────────────────────────────────────────────
