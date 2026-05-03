@@ -23,7 +23,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
 
 /* LIBRARY */
 #v-library{padding-bottom:90px;}
-.lib-top{padding:52px 24px 0;display:flex;align-items:flex-start;justify-content:space-between;}
+.lib-top{padding:calc(20px + env(safe-area-inset-top, 0px)) 24px 0;display:flex;align-items:flex-start;justify-content:space-between;}
 .lib-heading{flex:1;}
 .lib-eyebrow{font-size:11px;letter-spacing:2.5px;color:var(--ink3);margin-bottom:8px;}
 .lib-title{font-family:'Noto Serif TC',serif;font-size:42px;font-weight:700;color:var(--ink);letter-spacing:-2px;line-height:1;}
@@ -49,7 +49,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
 
 /* DETAIL */
 #v-detail{background:var(--bg);padding-bottom:100px;}
-.top-nav{display:flex;justify-content:space-between;align-items:center;padding:52px 20px 16px;}
+.top-nav{display:flex;justify-content:space-between;align-items:center;padding:calc(20px + env(safe-area-inset-top, 0px)) 20px 16px;}
 .book-hero{display:flex;gap:20px;padding:0 24px 24px;border-bottom:1px solid var(--border2);}
 .hero-cover{width:80px;height:114px;border-radius:6px;overflow:hidden;background:var(--paper2);flex-shrink:0;box-shadow:3px 5px 16px rgba(44,36,24,0.2);display:flex;align-items:center;justify-content:center;}
 .hero-cover img{width:100%;height:100%;object-fit:cover;}
@@ -79,7 +79,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
 
 /* EXCERPT VIEW */
 #v-excerpt{background:var(--bg);}
-.ev-nav{display:flex;justify-content:space-between;align-items:center;padding:52px 20px 16px;}
+.ev-nav{display:flex;justify-content:space-between;align-items:center;padding:calc(20px + env(safe-area-inset-top, 0px)) 20px 16px;}
 .ev-from{font-size:11px;color:var(--ink3);letter-spacing:.5px;}
 .ev-book{font-size:15px;font-weight:500;font-family:'Noto Serif TC',serif;}
 .ev-body{padding:24px;}
@@ -91,7 +91,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
 
 /* EDITOR */
 #v-editor{background:var(--bg);}
-.ed-nav{display:flex;align-items:center;gap:14px;padding:52px 20px 16px;border-bottom:1px solid var(--border2);}
+.ed-nav{display:flex;align-items:center;gap:14px;padding:calc(20px + env(safe-area-inset-top, 0px)) 20px 16px;border-bottom:1px solid var(--border2);}
 .ed-from{font-size:11px;color:var(--ink3);letter-spacing:.5px;}
 .ed-book{font-size:15px;font-weight:500;font-family:'Noto Serif TC',serif;}
 .ed-body{padding:24px 24px 140px;}
@@ -105,7 +105,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
 
 /* REVIEW */
 #v-review{padding-bottom:90px;}
-.rv-top{padding:52px 24px 24px;}
+.rv-top{padding:calc(20px + env(safe-area-inset-top, 0px)) 24px 24px;}
 .rv-eye{font-size:11px;letter-spacing:2.5px;color:var(--ink3);margin-bottom:8px;}
 .rv-title{font-family:'Noto Serif TC',serif;font-size:38px;font-weight:700;color:var(--ink);letter-spacing:-1px;}
 .rv-card{margin:0 24px 20px;background:var(--paper);border-radius:16px;border:1px solid var(--border2);overflow:hidden;}
@@ -232,8 +232,14 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
       <div class="ev-from">摘自</div>
       <div class="ev-book" id="ev-bname"></div>
     </div>
-    <div class="btn-circle" id="btn-del-ex">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    <div style="display:flex;gap:8px;">
+      <!-- 新增：編輯按鈕 -->
+      <div class="btn-circle" id="btn-edit-ex">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+      </div>
+      <div class="btn-circle" id="btn-del-ex">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </div>
     </div>
   </div>
   <div class="ev-body" id="ev-body"></div>
@@ -321,7 +327,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
 const CLIENT_ID = '177365117086-s56lviop60520ik96die202bdnogf514.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
 const DRIVE_FILE = 'bookshelf.json';
-// 填入你的 Books API Key
 const BOOKS_API_KEY = 'AIzaSyAucqmsTYZ4kiUdYkdMagGqUU7cDR5rsFI';
 
 // ── STATE ───────────────────────────────────────────────
@@ -335,27 +340,25 @@ let gToken=null, driveFileId=null;
 function init() {
   loadLocal();
   nav('library');
-  // Load Google Identity Services silently
   const s = document.createElement('script');
   s.src = 'https://accounts.google.com/gsi/client';
   s.onload = initGoogleAuth;
   document.head.appendChild(s);
 }
 
-function initGoogleAuth() {
-  // GSI loaded — do nothing automatically, only sign in when user taps sync
-}
+function initGoogleAuth() {}
 
 function manualSignIn() {
   if (!window.google) { toast('Google 服務載入中，請稍後再試'); return; }
   const client = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
     scope: SCOPES,
-    callback: (resp) => {
+    callback: async (resp) => {
       if (resp.error) { toast('授權失敗：' + resp.error); return; }
       gToken = resp.access_token;
-      toast('已連線 Google Drive');
-      pushToDrive();
+      toast('已連線 Google Drive，同步中…');
+      await pullFromDrive(); // 先下載合併資料
+      await pushToDrive();   // 再把合併後的最新資料推上去
     }
   });
   client.requestAccessToken();
@@ -455,6 +458,7 @@ function openEx(id) {
     ${curEx.page ? `<div class="ev-page">${esc(curEx.page)}</div>` : ''}
     ${curEx.note ? `<div class="ev-note-lbl">NOTE</div><div class="ev-note">${esc(curEx.note).replace(/\n/g,'<br>')}</div>` : ''}`;
   document.getElementById('btn-back-ex').onclick = () => openBook(curEx.bookId);
+  document.getElementById('btn-edit-ex').onclick = () => openEditor(id); // 綁定編輯功能
   document.getElementById('btn-del-ex').onclick = () => {
     if (!confirm('刪除這則摘錄？')) return;
     const bid = curEx.bookId;
@@ -465,24 +469,47 @@ function openEx(id) {
 }
 
 // ── EDITOR ───────────────────────────────────────────────
-function openEditor() {
+function openEditor(exId = null) {
   document.getElementById('ed-bname').textContent = curBook?.title||'';
-  document.getElementById('ed-text').value = '';
-  document.getElementById('ed-page').value = '';
-  document.getElementById('ed-note').value = '';
+  
+  if (exId) {
+    // 進入編輯模式，帶入原有資料
+    curEx = S.excerpts.find(x => x.id === exId);
+    document.getElementById('ed-text').value = curEx.text || '';
+    document.getElementById('ed-page').value = curEx.page || '';
+    document.getElementById('ed-note').value = curEx.note || '';
+  } else {
+    // 進入新增模式，清空欄位
+    curEx = null;
+    document.getElementById('ed-text').value = '';
+    document.getElementById('ed-page').value = '';
+    document.getElementById('ed-note').value = '';
+  }
+  
   document.getElementById('btn-back-ed').onclick = () => openBook(curBook.id);
   nav('editor');
   setTimeout(()=>document.getElementById('ed-text').focus(), 300);
 }
+
 function saveExcerpt() {
   const text = document.getElementById('ed-text').value.trim();
   if (!text) { toast('請輸入摘錄內容'); return; }
-  S.excerpts.push({
-    id: uid(), bookId: curBook.id, text,
-    page: document.getElementById('ed-page').value.trim(),
-    note: document.getElementById('ed-note').value.trim(),
-    ts: Date.now()
-  });
+  
+  if (curEx) {
+    // 儲存修改的書摘
+    curEx.text = text;
+    curEx.page = document.getElementById('ed-page').value.trim();
+    curEx.note = document.getElementById('ed-note').value.trim();
+  } else {
+    // 儲存全新的書摘
+    S.excerpts.push({
+      id: uid(), bookId: curBook.id, text,
+      page: document.getElementById('ed-page').value.trim(),
+      note: document.getElementById('ed-note').value.trim(),
+      ts: Date.now()
+    });
+  }
+  
   save(); openBook(curBook.id);
 }
 
@@ -636,9 +663,14 @@ function confirmAdd() {
 }
 
 // ── SYNC BUTTON ──────────────────────────────────────────
-document.getElementById('btn-sync').onclick = () => {
-  if (gToken) pushToDrive();
-  else manualSignIn();
+document.getElementById('btn-sync').onclick = async () => {
+  if (gToken) {
+    toast('同步中…');
+    await pullFromDrive(); // 先下載
+    await pushToDrive();   // 後上傳
+  } else {
+    manualSignIn();
+  }
 };
 
 // ── GOOGLE DRIVE ─────────────────────────────────────────
@@ -655,7 +687,6 @@ async function getFileId() {
 
 async function pushToDrive() {
   if (!gToken) return;
-  toast('備份中…');
   try {
     let fid = await getFileId();
     const body = JSON.stringify(S);
