@@ -321,6 +321,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
 const CLIENT_ID = '177365117086-s56lviop60520ik96die202bdnogf514.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
 const DRIVE_FILE = 'bookshelf.json';
+// 填入你的 Books API Key
+const BOOKS_API_KEY = '';
 
 // ── STATE ───────────────────────────────────────────────
 const KEY = 'bs_v5';
@@ -341,25 +343,7 @@ function init() {
 }
 
 function initGoogleAuth() {
-  if (!window.google) return;
-  // Try silent token first (no prompt)
-  const client = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    prompt: '',
-    callback: onToken,
-  });
-  // Request silently — will only show popup if no cached session
-  client.requestAccessToken({ prompt: 'none' });
-}
-
-function onToken(resp) {
-  if (resp.error) {
-    // Silent failed — try with consent prompt on next manual sync tap
-    return;
-  }
-  gToken = resp.access_token;
-  pullFromDrive();
+  // GSI loaded — do nothing automatically, only sign in when user taps sync
 }
 
 function manualSignIn() {
@@ -569,23 +553,21 @@ function debSearch(q) {
 async function doSearch(q) {
   lastQ = q;
   try {
-    // Use OAuth token if available for higher quota; Books API is public otherwise
-    const hdrs = gToken ? { Authorization: `Bearer ${gToken}` } : {};
     const base = 'https://www.googleapis.com/books/v1/volumes';
-    const r1 = await fetch(`${base}?q=${encodeURIComponent(q)}&maxResults=10&printType=books&orderBy=relevance`, { headers: hdrs });
+    const keyParam = BOOKS_API_KEY ? `&key=${BOOKS_API_KEY}` : '';
+    const r1 = await fetch(`${base}?q=${encodeURIComponent(q)}&maxResults=10&printType=books&orderBy=relevance${keyParam}`);
     if (q !== lastQ) return;
     if (!r1.ok) {
       const errData = await r1.json().catch(()=>({}));
       const msg = errData?.error?.message || `HTTP ${r1.status}`;
-      document.getElementById('sresults').innerHTML = `<div class="search-msg" style="color:#A32D2D;">搜尋失敗：${esc(msg)}<br><small>請確認 Google Books API 已在 Cloud Console 啟用</small></div>`;
+      document.getElementById('sresults').innerHTML = `<div class="search-msg" style="color:#A32D2D;">搜尋失敗：${esc(msg)}<br><small>請確認 Books API Key 已填入且 API 已啟用</small></div>`;
       return;
     }
     const d1 = await r1.json();
     let items = d1.items || [];
-    // If few results, also try intitle search
     if (items.length < 4) {
       try {
-        const r2 = await fetch(`${base}?q=intitle:${encodeURIComponent(q)}&maxResults=6&printType=books`, { headers: hdrs });
+        const r2 = await fetch(`${base}?q=intitle:${encodeURIComponent(q)}&maxResults=6&printType=books${keyParam}`);
         const d2 = await r2.json();
         const seen = new Set(items.map(v=>v.id));
         (d2.items||[]).forEach(v => { if (!seen.has(v.id)) { seen.add(v.id); items.push(v); } });
