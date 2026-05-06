@@ -68,13 +68,10 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
 .btn-new-ex{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--accent);font-weight:500;border:none;background:transparent;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
 .ex-item{padding:20px 24px;border-top:1px solid var(--border2);cursor:pointer;transition:background var(--t);}
 .ex-item:active{background:var(--paper2);}
-.ex-quote{font-family:'Noto Serif TC',serif;font-size:15px;line-height:1.85;color:var(--ink);margin-bottom:10px;}
+.ex-quote{font-family:'Noto Serif TC',serif;font-size:15px;line-height:1.85;color:var(--ink);margin-bottom:8px;}
 .ex-quote::before{content:'「';}
 .ex-quote::after{content:'」';}
-.ex-foot{display:flex;gap:12px;align-items:center;}
-.ex-page{font-size:12px;color:var(--ink3);font-style:italic;}
-.ex-date{font-size:12px;color:var(--ink3);}
-.ex-note-prev{font-size:13px;color:var(--ink2);margin-top:8px;line-height:1.5;font-style:italic;}
+.ex-note-prev{font-size:13px;color:var(--ink2);line-height:1.5;font-style:italic;}
 .no-ex{text-align:center;padding:48px 24px;color:var(--ink3);font-size:13px;line-height:2.4;}
 
 /* EXCERPT VIEW */
@@ -85,7 +82,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
 .ev-body{padding:24px;}
 .ev-sec{font-size:10px;letter-spacing:2px;color:var(--ink3);font-weight:500;margin-bottom:16px;}
 .ev-text{font-family:'Noto Serif TC',serif;font-size:22px;line-height:1.85;color:var(--ink);margin-bottom:28px;}
-.ev-page{font-size:14px;color:var(--ink2);font-style:italic;}
 .ev-note-lbl{font-size:10px;letter-spacing:2px;color:var(--ink3);font-weight:500;margin-top:28px;margin-bottom:12px;border-top:1px solid var(--border2);padding-top:24px;}
 .ev-note{font-size:15px;color:var(--ink2);line-height:1.7;}
 
@@ -97,7 +93,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
 .ed-body{padding:24px 24px 140px;}
 .ed-lbl{font-size:10px;letter-spacing:2px;color:var(--ink3);font-weight:500;display:block;margin-bottom:12px;}
 .ed-ta{width:100%;border:none;background:transparent;font-family:'Noto Serif TC',serif;font-size:19px;line-height:1.85;color:var(--ink);resize:vertical;outline:none;min-height:280px;}
-.ed-in{width:100%;border:none;border-top:1px solid var(--border2);background:transparent;font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--ink);padding:16px 0;outline:none;}
 .ed-na{width:100%;border:none;border-top:1px solid var(--border2);background:transparent;font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--ink);padding:16px 0;outline:none;resize:vertical;min-height:160px;}
 .ed-save{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:12px 24px calc(12px + env(safe-area-inset-bottom,0));background:var(--bg);border-top:1px solid var(--border2);}
 .btn-save{width:100%;background:var(--accent);color:white;border:none;border-radius:14px;padding:17px;font-size:16px;font-weight:500;font-family:'Noto Sans TC',sans-serif;cursor:pointer;letter-spacing:1px;}
@@ -115,7 +110,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
 .rv-card-note{padding:12px 20px;background:var(--bg);border-top:1px solid var(--border2);font-size:13px;color:var(--ink2);line-height:1.6;font-style:italic;}
 .rv-card-bottom{padding:12px 20px;display:flex;justify-content:space-between;align-items:center;}
 .rv-card-book{font-size:13px;color:var(--accent);font-weight:500;}
-.rv-card-page{font-size:12px;color:var(--ink3);font-style:italic;}
 .btn-shuffle{width:100%;border:none;background:transparent;font-size:13px;color:var(--ink2);font-family:'Noto Sans TC',sans-serif;cursor:pointer;padding:13px;display:flex;align-items:center;justify-content:center;gap:6px;border-top:1px solid var(--border2);}
 .rv-all-lbl{padding:8px 24px 12px;font-size:11px;letter-spacing:2px;color:var(--ink3);font-weight:500;}
 .rv-item{padding:16px 24px;border-top:1px solid var(--border2);cursor:pointer;transition:background var(--t);}
@@ -258,7 +252,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink)
   <div class="ed-body">
     <span class="ed-lbl">EXCERPT</span>
     <textarea class="ed-ta" id="ed-text" placeholder="輸入想記錄的段落…"></textarea>
-    <input class="ed-in" id="ed-page" placeholder="PAGE / CHAPTER　例：p. 134">
     <textarea class="ed-na" id="ed-note" placeholder="NOTE　（選填）為什麼想記下這一段？" rows="3"></textarea>
   </div>
   <div class="ed-save">
@@ -330,7 +323,6 @@ const BOOKS_API_KEY = 'AIzaSyAucqmsTYZ4kiUdYkdMagGqUU7cDR5rsFI';
 
 // ── STATE ───────────────────────────────────────────────
 const KEY = 'bs_v5';
-// 新增 deletedIds 陣列，用來記錄被刪除的項目，避免從 Google Drive 重複載入
 let S = { books:[], excerpts:[], deletedIds:[] };
 let curBook=null, curEx=null, pendBook=null, pendSt=null;
 let stimer=null, lastQ='', _sr=[], curTab='search';
@@ -445,10 +437,6 @@ function renderExs() {
     ${exs.map(e=>`
       <div class="ex-item" onclick="openEx('${e.id}')">
         <div class="ex-quote">${esc(e.text)}</div>
-        <div class="ex-foot">
-          ${e.page ? `<span class="ex-page">${esc(e.page)}</span>` : ''}
-          <span class="ex-date">${fdate(e.ts)}</span>
-        </div>
         ${e.note ? `<div class="ex-note-prev">${esc(e.note)}</div>` : ''}
       </div>`).join('')}`;
 }
@@ -462,10 +450,9 @@ function openEx(id) {
   document.getElementById('ev-body').innerHTML = `
     <div class="ev-sec">EXCERPT</div>
     <div class="ev-text">${esc(curEx.text).replace(/\n/g,'<br>')}</div>
-    ${curEx.page ? `<div class="ev-page">${esc(curEx.page)}</div>` : ''}
     ${curEx.note ? `<div class="ev-note-lbl">NOTE</div><div class="ev-note">${esc(curEx.note).replace(/\n/g,'<br>')}</div>` : ''}`;
   document.getElementById('btn-back-ex').onclick = () => openBook(curEx.bookId);
-  document.getElementById('btn-edit-ex').onclick = () => openEditor(id); // 綁定編輯功能
+  document.getElementById('btn-edit-ex').onclick = () => openEditor(id);
   
   document.getElementById('btn-del-ex').onclick = () => {
     if (!confirm('刪除這則摘錄？')) return;
@@ -489,13 +476,11 @@ function openEditor(exId = null) {
     // 進入編輯模式，帶入原有資料
     curEx = S.excerpts.find(x => x.id === exId);
     document.getElementById('ed-text').value = curEx.text || '';
-    document.getElementById('ed-page').value = curEx.page || '';
     document.getElementById('ed-note').value = curEx.note || '';
   } else {
     // 進入新增模式，清空欄位
     curEx = null;
     document.getElementById('ed-text').value = '';
-    document.getElementById('ed-page').value = '';
     document.getElementById('ed-note').value = '';
   }
   
@@ -511,13 +496,11 @@ function saveExcerpt() {
   if (curEx) {
     // 儲存修改的書摘
     curEx.text = text;
-    curEx.page = document.getElementById('ed-page').value.trim();
     curEx.note = document.getElementById('ed-note').value.trim();
   } else {
     // 儲存全新的書摘
     S.excerpts.push({
       id: uid(), bookId: curBook.id, text,
-      page: document.getElementById('ed-page').value.trim(),
       note: document.getElementById('ed-note').value.trim(),
       ts: Date.now()
     });
@@ -542,7 +525,6 @@ function renderReview() {
       ${r.note ? `<div class="rv-card-note">${esc(r.note)}</div>` : ''}
       <div class="rv-card-bottom">
         <span class="rv-card-book">《${esc(rb?.title||'')}》</span>
-        ${r.page ? `<span class="rv-card-page">${esc(r.page)}</span>` : ''}
       </div>
       <button class="btn-shuffle" onclick="renderReview()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
@@ -553,7 +535,7 @@ function renderReview() {
     ${all.map(e => {
       const bk = S.books.find(b=>b.id===e.bookId);
       return `<div class="rv-item" onclick="openEx('${e.id}')">
-        <div class="rv-item-book">《${esc(bk?.title||'')}》${e.page?' · '+esc(e.page):''}</div>
+        <div class="rv-item-book">《${esc(bk?.title||'')}》</div>
         <div class="rv-item-text">${esc(e.text)}</div>
         ${e.note ? `<div class="rv-item-note">${esc(e.note)}</div>` : ''}
       </div>`;
@@ -671,7 +653,6 @@ function confirmAdd() {
   if (!pendBook||!pendSt) return;
   pendBook.status=pendSt; pendBook.addedAt=Date.now();
   
-  // 若再次手動/搜尋加入一本書，將它從刪除清單中移除，允許復活
   if(S.deletedIds) {
     S.deletedIds = S.deletedIds.filter(did => did !== pendBook.id);
   }
@@ -685,8 +666,8 @@ function confirmAdd() {
 document.getElementById('btn-sync').onclick = async () => {
   if (gToken) {
     toast('同步中…');
-    await pullFromDrive(); // 先下載
-    await pushToDrive();   // 後上傳
+    await pullFromDrive();
+    await pushToDrive();
   } else {
     manualSignIn();
   }
@@ -739,19 +720,16 @@ async function pullFromDrive() {
     const remote = await res.json();
     if (remote.books && remote.excerpts) {
       
-      // 合併本地與雲端的「已刪除清單」
       const localDeleted = S.deletedIds || [];
       const remoteDeleted = remote.deletedIds || [];
       S.deletedIds = [...new Set([...localDeleted, ...remoteDeleted])];
       const allDeleted = new Set(S.deletedIds);
 
-      // 為防萬一，清掉本地目前在已刪除清單中的資料
       S.books = S.books.filter(b => !allDeleted.has(b.id));
       S.excerpts = S.excerpts.filter(e => !allDeleted.has(e.id));
 
       const bIds = new Set(S.books.map(b=>b.id));
       remote.books.forEach(b => { 
-        // 匯入條件：本地沒有，而且「不在刪除清單內」
         if(!bIds.has(b.id) && !allDeleted.has(b.id)) S.books.push(b); 
       });
       
@@ -766,7 +744,6 @@ async function pullFromDrive() {
   } catch(e) { /* silent */ }
 }
 
-// Auto-push 5s after changes
 let autoSyncTimer=null;
 function scheduleSync() {
   clearTimeout(autoSyncTimer);
@@ -780,7 +757,7 @@ function loadLocal() {
     const d=JSON.parse(localStorage.getItem(KEY)||'{}'); 
     S.books=d.books||[]; 
     S.excerpts=d.excerpts||[]; 
-    S.deletedIds=d.deletedIds||[]; // 載入時也帶入已刪除清單
+    S.deletedIds=d.deletedIds||[]; 
   } catch(e){} 
 }
 function save() { saveLocal(); scheduleSync(); }
